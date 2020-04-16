@@ -1,85 +1,146 @@
-window.onload = ()=>{
-    layui.use('mobile', function(){
-        var mobile = layui.mobile
-            ,layim = mobile.layim;
+window.onload = () => {
+	
+	//获取url上的参数
+	function getQueryString(name) {
+		var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+		var r = window.location.search.substr(1).match(reg);
+		if(r != null) return unescape(r[2]);
+		return null;
+	}
+	
+	var initData = {};
+//	var baseAddress = "http://172.16.0.110";
+//	var baseWsAddress = "ws://172.16.0.110";
+	var baseAddress = "http://localhost";
+	var baseWsAddress = "ws://localhost";
 
-        //演示自动回复
-        var autoReplay = [
-            '您好，我现在有事不在，一会再和您联系。',
-            '你没发错吧？face[微笑] ',
-            '洗澡中，请勿打扰，偷窥请购票，个体四十，团体八折，订票电话：一般人我不告诉他！face[哈哈] ',
-            '你好，我是主人的美女秘书，有什么事就跟我说吧，等他回来我会转告他的。face[心] face[心] face[心] ',
-            'face[威武] face[威武] face[威武] face[威武] ',
-            '<（@￣︶￣@）>',
-            '你要和我说话？你真的要和我说话？你确定自己想说吗？你一定非说不可吗？那你说吧，这是自动回复。',
-            'face[黑线]  你慢慢说，别急……',
-            '(*^__^*) face[嘻嘻] ，是贤心吗？'
-        ];
+	$.ajax({
+		type: "get",
+		url: baseAddress + '/im/person/info',
+		data: {
+			"openid": getQueryString("openid")
+		},
+		dataType: 'json',
+		success: function(data) {
 
-        layim.config({
-            //上传图片接口
-            uploadImage: {
-                url: '/upload/image' //（返回的数据格式见下文）
-                ,type: '' //默认post
-            }
+			if(data.code == 'success') {
+				initData = data.data;
 
-            //上传文件接口
-            ,uploadFile: {
-                url: '/upload/file' //（返回的数据格式见下文）
-                ,type: '' //默认post
-            }
+				initLayim(initData.data);
+			}
 
-            ,init: {
-                mine: {
-                    "username": "佟丽娅" //我的昵称
-                    ,"id": 123 //我的ID
-                    ,"avatar": "http://tp4.sinaimg.cn/1345566427/180/5730976522/0" //我的头像
-                }
-            }
-        });
+		}
+	});
 
-        //创建一个会话
-        layim.chat({
-            id: 111111
-            ,name: '许闲心'
-            ,type: 'kefu' //friend、group等字符，如果是group，则创建的是群聊
-            ,avatar: 'http://tp1.sinaimg.cn/1571889140/180/40030060651/1'
-        });
+	function initLayim(data) {
+		layui.use('mobile', function() {
+			var mobile = layui.mobile,
+				layim = mobile.layim;
 
+			console.log(initData, '是否为空44444444444')
 
-        //监听发送消息
-        layim.on('sendMessage', function(data){
-            var To = data.to;
-            //console.log(data);
+			layim.config({
+				//上传图片接口
+				uploadImage: {
+					//（返回的数据格式见下文）
+					url: '/upload/image',
+					type: '' //默认post
+				},
+				init: data
+			});
 
-            //演示自动回复
-            setTimeout(function(){
-                var obj = {};
-                if(To.type === 'group'){
-                    obj = {
-                        username: '模拟群员'+(Math.random()*100|0)
-                        ,avatar: layui.cache.dir + 'images/face/'+ (Math.random()*72|0) + '.gif'
-                        ,id: To.id
-                        ,type: To.type
-                        ,content: autoReplay[Math.random()*9|0]
-                    }
-                } else {
-                    obj = {
-                        username: To.name
-                        ,avatar: To.avatar
-                        ,id: To.id
-                        ,type: To.type
-                        ,content: autoReplay[Math.random()*9|0]
-                    }
-                }
-                layim.getMessage(obj);
-            }, 1000);
-        });
+			var websocket = null;
+			// 打开一个 web socket
+			if('WebSocket' in window) {
+				websocket = new WebSocket(baseWsAddress + "/contactCustomerServiceHandler?id=" + data.mine.id);
+			}
+//			else if('MozWebSocket' in window) {
+//				websocket = new MozWebSocket(baseWsAddress + "/Bank/webSocketServer");
+//			} else {
+//				websocket = new SockJS(baseAddress + "/sockjs/webSocketServer");
+//			}
 
-        //监听查看更多记录
-        layim.on('chatlog', function(data){
-            console.log(data);
-            layer.msg('do something');
-        });
-    });
+			// 监听发送消息
+			layim.on('sendMessage', function(data) {
+				// 接收消息人员信息
+				var mine = data.mine; // 发送人的信息，
+				var to = data.to; // 接收人的信息
+
+				var paramMap = {
+					username: mine.username,
+					content: mine.content,
+					avatar: mine.avatar,
+					emit: 'chatMessage',
+					sendPersonId: mine.id, // 发送人
+					receivePersonId: to.id, // 接收人
+				}
+
+				// 保存消息
+				$.ajax({
+					type: "post",
+					url: baseAddress + '/im/person/sendMessage',
+					data: JSON.stringify(paramMap),
+					contentType: 'application/json',
+					dataType: 'json',
+					success: function(data) {
+						console.log('已发送消息：', data)
+						if(data.code == 'success') {
+							console.log('成功')
+						}
+
+					}
+				});
+				
+			});
+
+			//创建一个会话
+			layim.chat({
+				id: -1,
+				// friend、group 等字符，如果是 group，则创建的是群聊
+				type: 'friend'
+			});
+			
+			websocket.onmessage = function(res) {
+				console.log(data, '接收消息')
+				
+				var data = res.data;
+				data = JSON.parse(data);
+
+				if (data.emit === 'chatMessage') {
+
+					// res.data 即你发送消息传递的数据（阅读：监听发送的消息）
+					layim.getMessage({
+						// 消息来源用户名
+						username: data.username,
+						// 消息来源用户头像
+						avatar: data.avatar,
+						// 消息的来源ID（如果是私聊，则是用户id，如果是群聊，则是群组id）
+						id: -1,// data.sendPersonId
+						// 聊天窗口来源类型，从发送消息传递的to里面获取 
+						type: "friend",
+						// 消息内容 
+						content: data.content,
+						// 消息id，可不传。除非你要对消息进行一些操作（如撤回）
+						cid: 0,
+						// 是否我发送的消息，如果为 true，则会显示在右方
+						mine: false,
+						// 消息的发送者 id（比如群组中的某个消息发送者），可用于自动解决浏览器多窗口时的一些问题
+						fromid: -1,// data.sendPersonId
+						// 服务端时间戳毫秒数。注意：如果你返回的是标准的 unix 时间戳，记得要 *1000
+						// timestamp: 1467475443306
+					});
+				}
+			};
+			
+			console.log('联系客服模式')
+
+			//监听查看更多记录
+			layim.on('chatlog', function(data) {
+				console.log(data);
+				layer.msg('do something');
+			});
+
+		});
+	}
+
 }
