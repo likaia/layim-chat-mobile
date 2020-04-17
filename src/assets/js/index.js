@@ -9,10 +9,10 @@ window.onload = () => {
 	}
 	
 	var initData = {};
-//	var baseAddress = "http://172.16.0.110";
-//	var baseWsAddress = "ws://172.16.0.110";
-	var baseAddress = "http://localhost";
-	var baseWsAddress = "ws://localhost";
+	var baseAddress = "http://172.16.0.110";
+	var baseWsAddress = "ws://172.16.0.110";
+//	var baseAddress = "http://localhost";
+//	var baseWsAddress = "ws://localhost";
 
 	$.ajax({
 		type: "get",
@@ -37,15 +37,13 @@ window.onload = () => {
 			var mobile = layui.mobile,
 				layim = mobile.layim;
 
-			console.log(initData, '是否为空44444444444')
-
 			layim.config({
 				//上传图片接口
-				uploadImage: {
-					//（返回的数据格式见下文）
-					url: '/upload/image',
-					type: '' //默认post
-				},
+//				uploadImage: {
+//					//（返回的数据格式见下文）
+//					url: '/upload/image',
+//					type: '' //默认post
+//				},
 				init: data
 			});
 
@@ -83,11 +81,9 @@ window.onload = () => {
 					contentType: 'application/json',
 					dataType: 'json',
 					success: function(data) {
-						console.log('已发送消息：', data)
 						if(data.code == 'success') {
-							console.log('成功')
+							
 						}
-
 					}
 				});
 				
@@ -101,19 +97,18 @@ window.onload = () => {
 			});
 			
 			websocket.onmessage = function(res) {
-				console.log(data, '接收消息')
 				
 				var data = res.data;
 				data = JSON.parse(data);
 
 				if (data.emit === 'chatMessage') {
-
+					
 					// res.data 即你发送消息传递的数据（阅读：监听发送的消息）
 					layim.getMessage({
 						// 消息来源用户名
 						username: data.username,
 						// 消息来源用户头像
-						avatar: data.avatar,
+						avatar: data.avatar.indexOf(baseAddress) == -1 ? baseAddress + data.avatar : data.avatar,
 						// 消息的来源ID（如果是私聊，则是用户id，如果是群聊，则是群组id）
 						id: -1,// data.sendPersonId
 						// 聊天窗口来源类型，从发送消息传递的to里面获取 
@@ -127,16 +122,13 @@ window.onload = () => {
 						// 消息的发送者 id（比如群组中的某个消息发送者），可用于自动解决浏览器多窗口时的一些问题
 						fromid: -1,// data.sendPersonId
 						// 服务端时间戳毫秒数。注意：如果你返回的是标准的 unix 时间戳，记得要 *1000
-						// timestamp: 1467475443306
+						timestamp: data.timestamp != null ? new Date(data.timestamp) : new Date()
 					});
 				}
 			};
 			
-			console.log('联系客服模式')
-
 			//监听查看更多记录
 			layim.on('chatlog', function(data) {
-				console.log(data);
 				layer.msg('do something');
 			});
 
