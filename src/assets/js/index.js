@@ -39,11 +39,10 @@ window.onload = () => {
 
 			layim.config({
 				//上传图片接口
-//				uploadImage: {
-//					//（返回的数据格式见下文）
-//					url: '/upload/image',
-//					type: '' //默认post
-//				},
+				uploadImage: {
+					//（返回的数据格式见下文）
+					url: baseAddress + '/common/uploadImage'
+				},
 				init: data
 			});
 
