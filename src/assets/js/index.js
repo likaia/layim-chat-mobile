@@ -1,5 +1,5 @@
 window.onload = () => {
-	
+
 	//获取url上的参数
 	function getQueryString(name) {
 		var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
@@ -7,7 +7,7 @@ window.onload = () => {
 		if(r != null) return unescape(r[2]);
 		return null;
 	}
-	
+
 	var initData = {};
 	var baseAddress = "http://172.16.0.110";
 	var baseWsAddress = "ws://172.16.0.110";
@@ -38,12 +38,50 @@ window.onload = () => {
 				layim = mobile.layim;
 
 			layim.config({
-				//上传图片接口
-				uploadImage: {
-					url: baseAddress + '/common/uploadImage',
-					type: 'post'
-				},
+				// //上传图片接口
+				// uploadImage: {
+				// 	url: baseAddress + '/common/uploadImage',
+				// 	type: 'post'
+				// },
+
+				tool: [{
+					alias: 'customImage' //工具别名
+					,title: '代码' //工具名称
+					,iconUnicode: '&#xe64a;' //图标字体的unicode，可不填
+					,iconClass: '' //图标字体的class类名
+				}],
+
 				init: data
+			});
+
+			//监听自定义工具栏点击，以上述扩展的工具为例
+			layim.on('tool(customImage)', function(insert, send, obj){ //事件中的tool为固定字符，而code则为过滤器，对应的是工具别名（alias）
+				let fileHidden = document.createElement("input");
+				fileHidden.type = "file";
+				fileHidden.accept = "image/*";
+				document.body.appendChild(fileHidden);
+				fileHidden.click();
+				fileHidden.addEventListener("change", function (e) {
+					let myForm = new FormData();
+					myForm.append('file', fileHidden.files[0]);
+					$.ajax({
+						url: `${baseAddress}/common/uploadImage`,
+						type: "POST",
+						data: myForm,
+						contentType: false,
+						processData: false,
+						success: function (res) {
+							res = JSON.parse(res);
+							if (res.code === 0) {
+								insert(`img[${res.data.src}]`);
+								send();
+							}
+						},
+						error:function(data){
+							console.log(data)
+						}
+					});
+				});
 			});
 
 			var websocket = null;
@@ -81,11 +119,11 @@ window.onload = () => {
 					dataType: 'json',
 					success: function(data) {
 						if(data.code == 'success') {
-							
+
 						}
 					}
 				});
-				
+
 			});
 
 			//创建一个会话
@@ -94,14 +132,14 @@ window.onload = () => {
 				// friend、group 等字符，如果是 group，则创建的是群聊
 				type: 'friend'
 			});
-			
+
 			websocket.onmessage = function(res) {
-				
+
 				var data = res.data;
 				data = JSON.parse(data);
 
 				if (data.emit === 'chatMessage') {
-					
+
 					// res.data 即你发送消息传递的数据（阅读：监听发送的消息）
 					layim.getMessage({
 						// 消息来源用户名
@@ -110,9 +148,9 @@ window.onload = () => {
 						avatar: data.avatar.indexOf(baseAddress) == -1 ? baseAddress + data.avatar : data.avatar,
 						// 消息的来源ID（如果是私聊，则是用户id，如果是群聊，则是群组id）
 						id: -1,// data.sendPersonId
-						// 聊天窗口来源类型，从发送消息传递的to里面获取 
+						// 聊天窗口来源类型，从发送消息传递的to里面获取
 						type: "friend",
-						// 消息内容 
+						// 消息内容
 						content: data.content,
 						// 消息id，可不传。除非你要对消息进行一些操作（如撤回）
 						cid: 0,
@@ -125,7 +163,7 @@ window.onload = () => {
 					});
 				}
 			};
-			
+
 			//监听查看更多记录
 			layim.on('chatlog', function(data) {
 				layer.msg('do something');
