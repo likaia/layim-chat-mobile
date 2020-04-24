@@ -45,10 +45,14 @@ window.onload = () => {
 				// },
 
 				tool: [{
-					alias: 'customImage' //工具别名
-					,title: '代码' //工具名称
-					,iconUnicode: '&#xe64a;' //图标字体的unicode，可不填
-					,iconClass: '' //图标字体的class类名
+					//工具别名
+					alias: 'customImage',
+					//工具名称
+					title: '上传图片',
+					//图标字体的unicode，可不填
+					iconUnicode: '&#xe60d;',
+					//图标字体的class类名
+					iconClass: '' 
 				}],
 
 				init: data
