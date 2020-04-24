@@ -40,8 +40,8 @@ window.onload = () => {
 			layim.config({
 				//上传图片接口
 				uploadImage: {
-					//（返回的数据格式见下文）
-					url: baseAddress + '/common/uploadImage'
+					url: baseAddress + '/common/uploadImage',
+					type: 'post'
 				},
 				init: data
 			});
