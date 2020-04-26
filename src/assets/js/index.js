@@ -64,6 +64,7 @@ window.onload = () => {
 				fileHidden.addEventListener("change", function (e) {
 					let myForm = new FormData();
 					myForm.append('file', fileHidden.files[0]);
+					fileHidden.remove();
 					$.ajax({
 						url: `${baseAddress}/common/uploadImage`,
 						type: "POST",
