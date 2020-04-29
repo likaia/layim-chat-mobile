@@ -1,10 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>历史记录</title>
-</head>
-<body>
-历史记录
-</body>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<script src="/layim-chat-mobile/plugins/jquery/jquery1.11.3.min.js"></script>
+		<script src="/layim-chat-mobile/plugins/layIm/layui.js"></script>
+
+		<title>历史记录</title>
+	</head>
+
+	<body>
+
+		<div class="layim-chat-main">
+			<ul id="LAY_view">
+
+			</ul>
+		</div>
+
+		<div id="LAY_page" style="margin: 0 10px;"></div>
+
+		<!-- parent.layui.layim.cache().mine.id -->
+
+		<textarea title="消息模版" id="LAY_tpl" style="display:none;">
+		{{# layui.each(d.data, function(index, item){
+		  if(item.mine){ }}
+		    
+		    <li class="layim-chat-mine">
+		    	<div class="layim-chat-user">
+		    		<img src="{{ item.avatar.indexOf('http') == -1 ? (baseUrl + item.avatar) : item.avatar }}">
+		    		<cite>
+		    			<i>
+		    				{{ layui.data.date(item.timestamp) }}
+		    			</i>
+		    			{{ item.username }}
+		    		</cite>
+		    	</div>
+		    	<div class="layim-chat-text">
+		    		{{ layui.layim.content(item.content) }}
+		    	</div>
+		    </li>
+		    
+		  {{# } else { }}
+		    <li>
+		    	<div class="layim-chat-user">
+		    		<img src="{{ item.avatar.indexOf('http') == -1 ? (baseUrl + item.avatar) : item.avatar }}">
+		    		<cite>
+		    			{{ item.username }}
+		    			<i>
+		    				{{ layui.data.date(item.timestamp) }}
+		    			</i>
+		    		</cite>
+		    	</div>
+		    	<div class="layim-chat-text">
+		    		{{ layui.layim.content(item.content) }}
+		    	</div>
+		    </li>
+		  {{# }
+		}); }}
+		</textarea>
+
+		<script>
+			layui.use(['layim', 'laypage'], function() {
+				var layim = layui.layim,
+					layer = layui.layer,
+					laytpl = layui.laytpl,
+					$ = layui.jquery,
+					laypage = layui.laypage,
+					param = location.search;
+					baseUrl = "http://172.16.0.110";
+
+				$.ajax({
+					type: "get",
+					url: baseUrl + "/im/user/chatRecord" + param + "&skipToPage=1",
+					async: false,
+					dataType: "json",
+					success: function(data) {
+						console.log(data, '返回的聊天记录')
+						
+						result = data;
+						var html = laytpl(LAY_tpl.value).render({
+							data: result.data
+						});
+						$('#LAY_view').html(html);
+					}
+				});
+
+				//分页按钮
+				laypage.render({
+					elem: 'LAY_page',
+					curr: '${pager.pageNo}',
+					count: '${pager.totalSize}' //数据总数
+						,
+					groups: 3 //连续显示分页数
+						,
+					skip: true,
+					jump: function(obj, first) {
+						//得到了当前页，用于向服务端请求对应数据
+						var curr = obj.curr;
+						if(!first) {
+							var vl = param + "&skipToPage=" + curr;
+							$.ajax({
+								type: "get",
+								url: baseUrl + "/im/user/chatRecord" + vl,
+								async: false,
+								dataType: "json",
+								success: function(data) {
+									result = data;
+									var html = laytpl(LAY_tpl.value).render({
+										data: result.data
+									});
+									$('#LAY_view').html(html);
+								}
+							});
+
+						}
+					}
+				});
+
+			});
+		</script>
+
+	</body>
+
 </html>
