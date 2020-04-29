@@ -8,6 +8,37 @@
 		<script src="/layim-chat-mobile/plugins/layIm/layui.js"></script>
 
 		<title>历史记录</title>
+
+		<style>
+			body {
+				margin: 0;
+				box-sizing: border-box;
+				width: 100%;
+				height: 100%;
+				position: absolute;
+			}
+
+			.layim-chat-main {
+				width: 100% !important;
+				height: 100% !important;
+				box-sizing: border-box !important;
+			}
+
+			::-webkit-scrollbar {
+				width: 10px;
+				height: 10px;
+			}
+
+			::-webkit-scrollbar-thumb {
+				border-radius: 5px;
+				background-color: #ddd;
+			}
+
+			::-webkit-scrollbar-track {
+				border-radius: 0;
+				background: none;
+			}
+		</style>
 	</head>
 
 	<body>
@@ -18,14 +49,14 @@
 			</ul>
 		</div>
 
-		<div id="LAY_page" style="margin: 0 10px;"></div>
+		<!--<div id="LAY_page" style="margin: 0 10px;"></div>-->
 
 		<!-- parent.layui.layim.cache().mine.id -->
 
 		<textarea title="消息模版" id="LAY_tpl" style="display:none;">
 		{{# layui.each(d.data, function(index, item){
 		  if(item.mine){ }}
-		    
+
 		    <li class="layim-chat-mine">
 		    	<div class="layim-chat-user">
 		    		<img src="{{ item.avatar.indexOf('http') == -1 ? (baseUrl + item.avatar) : item.avatar }}">
@@ -40,7 +71,7 @@
 		    		{{ layui.layim.content(item.content) }}
 		    	</div>
 		    </li>
-		    
+
 		  {{# } else { }}
 		    <li>
 		    	<div class="layim-chat-user">
@@ -62,7 +93,7 @@
 
 		<script>
 			layui.use(['layim', 'laypage'], function() {
-				var layim = layui.layim,
+				let layim = layui.layim,
 					layer = layui.layer,
 					laytpl = layui.laytpl,
 					$ = layui.jquery,
@@ -70,24 +101,71 @@
 					param = location.search;
 					baseUrl = "http://172.16.0.110";
 
-				$.ajax({
-					type: "get",
-					url: baseUrl + "/im/user/chatRecord" + param + "&skipToPage=1",
-					async: false,
-					dataType: "json",
-					success: function(data) {
-						console.log(data, '返回的聊天记录')
-						
-						result = data;
-						var html = laytpl(LAY_tpl.value).render({
-							data: result.data
-						});
-						$('#LAY_view').html(html);
-					}
-				});
+				let pageNum = 1,
+					pageSize = 10,
+					total = 0,
+					result = [];
+
+				function search() {
+					$.ajax({
+						type: "get",
+						url: baseUrl + "/im/user/chatRecord" + param,
+						async: false,
+						dataType: "json",
+						data: {
+							pageNum,
+							pageSize
+						},
+						success: function(res) {
+							console.log(res, '返回的聊天记录')
+							total = res.total;
+
+							res.data = res.data.reverse();
+
+							res.data.forEach(item => {
+								result.unshift(item);
+							})
+							console.log(result)
+							let html = laytpl(LAY_tpl.value).render({
+								data: result
+							});
+							$('#LAY_view').html(html);
+
+							if (document.getElementById("LAY_view").offsetHeight < document.querySelector(".layim-chat-main").offsetHeight) {
+								if (total > result.length) {
+									pageNum++;
+									search();
+								}
+							}
+						}
+					});
+				}
+
+				search();
+
+				$(window).load(function () {
+					setTimeout(() => {
+						$(".layim-chat-main").scrollTop($(this).outerHeight(), 200);
+					}, 50);
+
+					setTimeout(() => {
+						$(".layim-chat-main").on("scroll", function () {
+							let scrollTop = $("#LAY_view").offset().top - 31;
+
+							if (scrollTop < -20) {
+								return;
+							}
+
+							if (total > result.length) {
+								pageNum++;
+								search();
+							}
+						})
+					}, 300)
+				})
 
 				//分页按钮
-				laypage.render({
+				/*laypage.render({
 					elem: 'LAY_page',
 					curr: '${pager.pageNo}',
 					count: '${pager.totalSize}' //数据总数
@@ -107,17 +185,16 @@
 								dataType: "json",
 								success: function(data) {
 									result = data;
+									console.log(data)
 									var html = laytpl(LAY_tpl.value).render({
 										data: result.data
 									});
 									$('#LAY_view').html(html);
 								}
 							});
-
 						}
 					}
-				});
-
+				});*/
 			});
 		</script>
 
