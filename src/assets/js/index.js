@@ -1,3 +1,8 @@
+	var baseAddress = "http://172.16.0.110";
+	var baseWsAddress = "ws://172.16.0.110";
+//	var baseAddress = "http://localhost";
+//	var baseWsAddress = "ws://localhost";
+
 window.onload = () => {
 
 	//获取url上的参数
@@ -9,10 +14,6 @@ window.onload = () => {
 	}
 
 	var initData = {};
-	var baseAddress = "http://172.16.0.110";
-	var baseWsAddress = "ws://172.16.0.110";
-//	var baseAddress = "http://localhost";
-//	var baseWsAddress = "ws://localhost";
 
 	$.ajax({
 		type: "get",
@@ -34,8 +35,12 @@ window.onload = () => {
 
 	function initLayim(data) {
 		layui.use('mobile', function() {
+			console.log(layui)
 			var mobile = layui.mobile,
-				layim = mobile.layim;
+				layim = mobile.layim,
+				laytpl = layui.laytpl,
+				$ = layui.jquery,
+				laypage = layui.laypage;
 
 			layim.config({
 				// //上传图片接口
@@ -168,10 +173,38 @@ window.onload = () => {
 					});
 				}
 			};
-
+			
+			var sendId = data.mine.id,
+				result = [];
+			
 			//监听查看更多记录
-			layim.on('chatlog', function(data) {
-				layer.msg('do something');
+			layim.on('chatlog', function(data, ul) {
+				console.log(data, ul, '点击了更多聊天记录  ul 下的 layim-chat-li')
+				
+				console.log(ul.find('.layim-chat-li').length )
+				
+				$.ajax({
+					type: "get",
+					url: baseAddress + "/im/person/chatRecord?sendId=" + sendId,
+					data: {
+						startNumber: ul.find('.layim-chat-li').length
+					},
+					async: false,
+					dataType: "json",
+					success: function(res) {
+						console.log(res, '返回的聊天记录')
+						total = res.total;
+						res.data.forEach(item => {
+							result.unshift(item);
+						})
+						console.log(result)
+						let html = laytpl(LAY_tpl.value).render({
+							data: result
+						});
+						$(html).prependTo(ul);
+					}
+				});
+//				layer.msg('do something');
 			});
 
 		});
