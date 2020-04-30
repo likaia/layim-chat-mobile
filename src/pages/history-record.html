@@ -96,17 +96,15 @@
 		</textarea>
 
 		<script>
-			layui.use(['layim', 'laypage'], function() {
+			layui.use('layim', function() {
 				let layim = layui.layim,
 					layer = layui.layer,
 					laytpl = layui.laytpl,
 					$ = layui.jquery,
-					laypage = layui.laypage,
 					param = location.search,
 					chatMain = $(".layim-chat-main"), // 容器元素
-					listView = $("#LAY_view"); // 列表元素
-
-				baseUrl = "http://172.16.0.110";
+					listView = $("#LAY_view"), // 列表元素
+					baseUrl = "http://172.16.0.110";
 
 				let pageNum = 1, // 当前页
 					pageSize = 10, // 每页数据条数
@@ -115,7 +113,7 @@
 					isInSearch = false, // 是否在搜索
 					firstLoad = true, // 是否首次加载
 					cacheHeight = 0, // 之前高度
-          nowHeight = 0; // 现在高度
+          			nowHeight = 0; // 现在高度
 
 				function search() {
 					if (isInSearch) {
@@ -146,9 +144,9 @@
 							});
 							$('#LAY_view').html(html);
 
-              cacheHeight = nowHeight; // 之前的高度存起来
-              nowHeight = $(listView).outerHeight();// 获取现在的高度
-              $(chatMain).scrollTop(nowHeight - cacheHeight)// 设置滚动位置
+			              	cacheHeight = nowHeight; // 之前的高度存起来
+			              	nowHeight = $(listView).outerHeight();// 获取现在的高度
+			              	$(chatMain).scrollTop(nowHeight - cacheHeight)// 设置滚动位置
 
 							// 如果列表高度小于容器高度继续搜索下一页
 							if (document.getElementById("LAY_view").offsetHeight < document.querySelector(".layim-chat-main").offsetHeight) {

@@ -30,7 +30,7 @@
 		{{# layui.each(d.data, function(index, item){
 		  if(item.mine){ }}
 
-		    <li class="layim-chat-mine">
+		    <li class="layim-chat-li layim-chat-mine">
 		    	<div class="layim-chat-user">
 		    		<img src="{{ item.avatar.indexOf('http') == -1 ? (baseAddress + item.avatar) : item.avatar }}">
 		    		<cite>
@@ -41,12 +41,12 @@
 		    		</cite>
 		    	</div>
 		    	<div class="layim-chat-text">
-		    		{{ item.content }}
+		    		{{ layui.mobile.layim.content(item.content) }}
 		    	</div>
 		    </li>
 
 		  {{# } else { }}
-		    <li>
+		    <li class="layim-chat-li">
 		    	<div class="layim-chat-user">
 		    		<img src="{{ item.avatar.indexOf('http') == -1 ? (baseAddress + item.avatar) : item.avatar }}">
 		    		<cite>
@@ -57,7 +57,7 @@
 		    		</cite>
 		    	</div>
 		    	<div class="layim-chat-text">
-		    		{{ item.content }}
+		    		{{ layui.mobile.layim.content(item.content) }}
 		    	</div>
 		    </li>
 		  {{# }

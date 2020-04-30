@@ -35,7 +35,6 @@ window.onload = () => {
 
 	function initLayim(data) {
 		layui.use('mobile', function() {
-			console.log(layui)
 			var mobile = layui.mobile,
 				layim = mobile.layim,
 				laytpl = layui.laytpl,
@@ -178,23 +177,28 @@ window.onload = () => {
 				result = [];
 
 			let isInSearch = false,
-				firstLoad = true,
+//				firstLoad = true,
 				cacheHeight = 0,
 				nowHeight = 0;
 
 			let moreLog = document.querySelector(".layim-chat-main > .layim-chat-system > span"),
 				chatMain = document.querySelector(".layim-chat-main"), // 容器元素
 				listView = document.querySelector(".layim-chat-main > ul"); // 容器元素
-
+				
+			if (!moreLog) {
+				$('.layim-chat-main').append('<div class="layim-chat-system"><span layim-event="chatLog"></span></div>');
+				moreLog = document.querySelector(".layim-chat-main > .layim-chat-system > span")
+			}
+			
 			$(moreLog).on("click", function () {
-				isInSearch = true;
-				console.log("点击了查找更多记录")
+//				isInSearch = true;
+//				console.log("点击了查找更多记录")
 				search();
 			})
 
-			if (firstLoad) {
-				firstLoad = false;
-				console.log("加载完成")
+//			if (firstLoad) {
+//				firstLoad = false;
+//				console.log("加载完成")
 
 				let promiseAll = [];
 
@@ -217,13 +221,13 @@ window.onload = () => {
 						$(chatMain).on("scroll", function () {
 							if (isInSearch) return;
 							if ($(listView).offset().top > 64) {
-								console.log("触顶了")
+//								console.log("触顶了", moreLog)
 								$(moreLog).click();
 							}
 						})
 					}, 160)
 				})
-			}
+//			}
 
 			function search() {
 				$.ajax({
@@ -236,12 +240,12 @@ window.onload = () => {
 					dataType: "json",
 					success: function(res) {
 						isInSearch = false;
-						console.log(res, '返回的聊天记录')
+//						console.log(res, '返回的聊天记录')
 						total = res.total;
 						res.data.forEach(item => {
 							result.unshift(item);
 						})
-						console.log(result)
+//						console.log(result)
 						let html = laytpl(LAY_tpl.value).render({
 							data: result
 						});
@@ -256,10 +260,10 @@ window.onload = () => {
 
 			//监听查看更多记录
 			layim.on('chatlog', function(data, ul) {
-				console.log(data, ul, '点击了更多聊天记录 ul 下的 layim-chat-li')
-				console.log(ul.find('.layim-chat-li').length )
+//				console.log(data, ul, '点击了更多聊天记录 ul 下的 layim-chat-li')
+//				console.log(ul.find('.layim-chat-li').length )
 //				layer.msg('do something');
-// 				search();
+   				search();
 			});
 
 		});
