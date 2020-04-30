@@ -57,7 +57,7 @@ window.onload = () => {
 					//图标字体的unicode，可不填
 					iconUnicode: '&#xe60d;',
 					//图标字体的class类名
-					iconClass: '' 
+					iconClass: ''
 				}],
 
 				init: data
@@ -94,7 +94,7 @@ window.onload = () => {
 				});
 			});
 
-			var websocket = null;
+			let websocket = null;
 			// 打开一个 web socket
 			if('WebSocket' in window) {
 				websocket = new WebSocket(baseWsAddress + "/contactCustomerServiceHandler?id=" + data.mine.id);
@@ -173,16 +173,19 @@ window.onload = () => {
 					});
 				}
 			};
-			
+
 			var sendId = data.mine.id,
 				result = [];
-			
+
+			let moreLog = document.querySelectorAll(".layim-chat-system").filter(item => item.querySelector("span").innerText === "查看更多记录");
+			console.log(moreLog)
+
 			//监听查看更多记录
 			layim.on('chatlog', function(data, ul) {
 				console.log(data, ul, '点击了更多聊天记录  ul 下的 layim-chat-li')
-				
+
 				console.log(ul.find('.layim-chat-li').length )
-				
+
 				$.ajax({
 					type: "get",
 					url: baseAddress + "/im/person/chatRecord?sendId=" + sendId,
