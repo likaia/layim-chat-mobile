@@ -177,24 +177,65 @@ window.onload = () => {
 			var sendId = data.mine.id,
 				result = [];
 
-			let moreLog = document.querySelectorAll(".layim-chat-system").filter(item => item.querySelector("span").innerText === "查看更多记录");
-			console.log(moreLog)
+			let isInSearch = false,
+				firstLoad = true,
+				cacheHeight = 0,
+				nowHeight = 0;
 
-			//监听查看更多记录
-			layim.on('chatlog', function(data, ul) {
-				console.log(data, ul, '点击了更多聊天记录  ul 下的 layim-chat-li')
+			let moreLog = document.querySelector(".layim-chat-main > .layim-chat-system > span"),
+				chatMain = document.querySelector(".layim-chat-main"), // 容器元素
+				listView = document.querySelector(".layim-chat-main > ul"); // 容器元素
 
-				console.log(ul.find('.layim-chat-li').length )
+			$(moreLog).on("click", function () {
+				isInSearch = true;
+				console.log("点击了查找更多记录")
+				search();
+			})
 
+			if (firstLoad) {
+				firstLoad = false;
+				console.log("加载完成")
+
+				let promiseAll = [];
+
+				document.querySelectorAll("img.layui-layim-photos").forEach((item, index) => {
+					promiseAll[index] = new Promise(resolve => {
+						item.onload = function () {
+							resolve()
+						}
+					})
+				})
+
+				// 所有图片加载完后在滚动到最底
+				Promise.all(promiseAll).then(() => {
+					setTimeout(() => {
+						$(chatMain).scrollTop($(listView).outerHeight());
+					}, 80)
+
+					setTimeout(() => {
+						// 触顶加载
+						$(chatMain).on("scroll", function () {
+							if (isInSearch) return;
+							if ($(listView).offset().top > 64) {
+								console.log("触顶了")
+								$(moreLog).click();
+							}
+						})
+					}, 160)
+				})
+			}
+
+			function search() {
 				$.ajax({
 					type: "get",
 					url: baseAddress + "/im/person/chatRecord?sendId=" + sendId,
 					data: {
-						startNumber: ul.find('.layim-chat-li').length
+						startNumber: $(listView).find('.layim-chat-li').length
 					},
 					async: false,
 					dataType: "json",
 					success: function(res) {
+						isInSearch = false;
 						console.log(res, '返回的聊天记录')
 						total = res.total;
 						res.data.forEach(item => {
@@ -204,10 +245,21 @@ window.onload = () => {
 						let html = laytpl(LAY_tpl.value).render({
 							data: result
 						});
-						$(html).prependTo(ul);
+						$(html).prependTo(listView);
+
+						cacheHeight = nowHeight; // 之前的高度存起来
+						nowHeight = $(listView).outerHeight();// 获取现在的高度
+						$(chatMain).scrollTop(nowHeight - cacheHeight)// 设置滚动位置
 					}
 				});
+			}
+
+			//监听查看更多记录
+			layim.on('chatlog', function(data, ul) {
+				console.log(data, ul, '点击了更多聊天记录 ul 下的 layim-chat-li')
+				console.log(ul.find('.layim-chat-li').length )
 //				layer.msg('do something');
+// 				search();
 			});
 
 		});
